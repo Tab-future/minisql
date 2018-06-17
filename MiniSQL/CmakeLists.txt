@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.0)
+project(AS7)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_FLAGS "-static-libgcc -static-libstdc++")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -pg")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+
+file(GLOB SOURCE_CXX "${CMAKE_SOURCE_DIR}/src/*.cpp")
+file(GLOB SOURCE_C "${CMAKE_SOURCE_DIR}/src/*.c")
+set(SOURCE ${SOURCE_CXX} ${SOURCE_C})
+
+if (WIN32)
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mwindows")
+elseif (APPLE)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework Cocoa -framework IOKit -framework CoreVideo")
+elseif (UNIX)
+	link_libraries(X11 m dl Xxf86vm Xrandr Xi Xcursor Xinerama pthread)
+endif ()
+
+include_directories("${CMAKE_SOURCE_DIR}/include")
+
+add_executable("MiniSQL" ${SOURCE})

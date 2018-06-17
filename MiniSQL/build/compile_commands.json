@@ -1,0 +1,17 @@
+[
+{
+  "directory": "C:/Users/KseeleK/Desktop/2017-2018 The Second Semester/DB/MiniSQL/build",
+  "command": "C:\\PROGRA~1\\MINGW-~1\\X86_64~1.0-W\\mingw64\\bin\\G__~1.EXE   @CMakeFiles/MiniSQL.dir/includes_CXX.rsp -static-libgcc -static-libstdc++ -g -pg   -std=gnu++14 -o CMakeFiles\\MiniSQL.dir\\src\\BufferMange.cpp.obj -c \"C:\\Users\\KseeleK\\Desktop\\2017-2018 The Second Semester\\DB\\MiniSQL\\src\\BufferMange.cpp\"",
+  "file": "C:/Users/KseeleK/Desktop/2017-2018 The Second Semester/DB/MiniSQL/src/BufferMange.cpp"
+},
+{
+  "directory": "C:/Users/KseeleK/Desktop/2017-2018 The Second Semester/DB/MiniSQL/build",
+  "command": "C:\\PROGRA~1\\MINGW-~1\\X86_64~1.0-W\\mingw64\\bin\\G__~1.EXE   @CMakeFiles/MiniSQL.dir/includes_CXX.rsp -static-libgcc -static-libstdc++ -g -pg   -std=gnu++14 -o CMakeFiles\\MiniSQL.dir\\src\\Record.cpp.obj -c \"C:\\Users\\KseeleK\\Desktop\\2017-2018 The Second Semester\\DB\\MiniSQL\\src\\Record.cpp\"",
+  "file": "C:/Users/KseeleK/Desktop/2017-2018 The Second Semester/DB/MiniSQL/src/Record.cpp"
+},
+{
+  "directory": "C:/Users/KseeleK/Desktop/2017-2018 The Second Semester/DB/MiniSQL/build",
+  "command": "C:\\PROGRA~1\\MINGW-~1\\X86_64~1.0-W\\mingw64\\bin\\G__~1.EXE   @CMakeFiles/MiniSQL.dir/includes_CXX.rsp -static-libgcc -static-libstdc++ -g -pg   -std=gnu++14 -o CMakeFiles\\MiniSQL.dir\\src\\test.cpp.obj -c \"C:\\Users\\KseeleK\\Desktop\\2017-2018 The Second Semester\\DB\\MiniSQL\\src\\test.cpp\"",
+  "file": "C:/Users/KseeleK/Desktop/2017-2018 The Second Semester/DB/MiniSQL/src/test.cpp"
+}
+]

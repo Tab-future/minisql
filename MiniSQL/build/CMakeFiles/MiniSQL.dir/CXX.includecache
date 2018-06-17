@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/BufferMange.h
+string
+-
+vector
+-
+map
+-
+fstream
+-
+sstream
+-
+
+../include/Record.h
+BufferMange.h
+../include/BufferMange.h
+
+C:/Users/KseeleK/Desktop/2017-2018 The Second Semester/DB/MiniSQL/src/BufferMange.cpp
+BufferMange.h
+C:/Users/KseeleK/Desktop/2017-2018 The Second Semester/DB/MiniSQL/src/BufferMange.h
+iostream
+-
+cmath
+-
+
+C:/Users/KseeleK/Desktop/2017-2018 The Second Semester/DB/MiniSQL/src/Record.cpp
+Record.h
+C:/Users/KseeleK/Desktop/2017-2018 The Second Semester/DB/MiniSQL/src/Record.h
+
+C:/Users/KseeleK/Desktop/2017-2018 The Second Semester/DB/MiniSQL/src/test.cpp
+Record.h
+C:/Users/KseeleK/Desktop/2017-2018 The Second Semester/DB/MiniSQL/src/Record.h
+cstdio
+-
+iostream
+-
+
