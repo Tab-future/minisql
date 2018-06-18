@@ -34,7 +34,7 @@ bool API::CreateIndex(string tableName, string indexName, key attr, bool check =
 	// I need to get the attrVec corresponding with the tableName(assign to attrVec)
 	for (int i = 0; i < attrVec.size(); i++)
 	{
-		if (attrVec[i].name == attr.name)
+		if (attrVec[i] == attr.name)
 		{
 			switch (attr.type)
 			{
