@@ -143,3 +143,18 @@ bool API::IfKeyExist(string TableName, string KeyName)
 bool API::DeleteIndex(int post1, int post2, int change, string tableName)
 {
 }
+void API::GetAttr(string& TableName, vector<key>& attr)
+{
+	int tableIndex = DB->FindTableIndex(TableName);
+	if(tableIndex >= 0) attr = DB->table[tableIndex].keyList;
+}
+bool API::DescribleTable(string& tableName)
+{
+	int tableIndex = DB->FindTableIndex(tableName);
+	if(tableIndex >= 0) return DB->table[tableIndex].DescribeTable();
+	else 
+	{
+		cout << "No such table exists. " << endl;
+		return 0;
+	}
+}

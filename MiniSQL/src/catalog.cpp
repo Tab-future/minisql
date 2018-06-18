@@ -18,14 +18,10 @@ schema::schema(string tableName, vector<key>& attrVec)
 {
     name = tableName;
     tupleSize = 0;
-    keySize = attrVec.size();
-    keyList = attrVec;
     recordSize = 0;
-    for(int i = 0; i < keyList.size(); i++)
+    for(int i = 0; i < attrVec.size(); i++)
     {
-        if(keyList[i].primary) primaryKey.push_back(keyList[i].name);
-        if(keyList[i].type == INT || keyList[i].type == FLOAT) recordSize += 4;
-        else recordSize += keyList[i].type - 2;
+        AddKey(attrVec[i]);
     }
     indexSize = 0;
     emptyIndex = 0;
@@ -42,15 +38,9 @@ bool schema::load(istream& in)
     recordSize = 0;
     for(int i = 0; i < keySize ; i ++)
     {
-        auto temp = new key;
-        in >> temp->name >> temp->type >> temp->primary >> temp->unique;
-        if(temp->type == INT || temp->type == FLOAT) recordSize += 4;
-        else recordSize += temp->type - 2;
-        keyList.push_back(*temp);
-        delete temp;
-
-        //mark primary key
-        if(keyList.back().primary) primaryKey.push_back(keyList.back().name);
+        key temp;
+        in >> temp.name >> temp.type >> temp.primary >> temp.unique;
+        AddKey(temp);
     }
     in >> emptyIndex;
     //load index info
@@ -93,24 +83,27 @@ bool schema::store()
     file.close();
     return 1;
 }
-bool schema::addKey()
+bool schema::AddKey()
 {
     key newKey;
     cout << "Add a key with following input format: " << endl;
     cout << "name type(int->0, float->1, varchar(n)-> n+2) primary(0/1) unique(0/1)" << endl << endl;
     cin >> newKey.name >> newKey.type >> newKey.primary >> newKey.unique;
-    return addKey(newKey);
+    return AddKey(newKey);
 }
-bool schema::addKey(key& newKey)
+bool schema::AddKey(key& newKey)
 {
     //if reach maximum attribute size
     if(keySize >= MAX_ATTRIBUTES) return 0;
     keyList.push_back(newKey);
-    if(newKey.primary) primaryKey.push_back(newKey.name);
+    //
+    if(newKey.type == INT || newKey.type == FLOAT) recordSize += 4;
+    else recordSize += newKey.type - 2;    
+    if(newKey.primary) primaryKey.push_back(keySize);
     keySize++;
     return 1;
 }
-bool schema::dropKey(string keyName)
+bool schema::DropKey(string keyName)
 {
     bool flag = 0;
     for(auto i = keyList.begin(); i != keyList.end(); i++)
@@ -123,7 +116,7 @@ bool schema::dropKey(string keyName)
         }
     return flag;
 }
-indexNode& schema::createIndex(string& indexName, vector<string>& keys)
+indexNode& schema::CreateIndex(string& indexName, vector<string>& keys)
 {
     errorInfo error;
     auto temp = new indexNode;
@@ -142,14 +135,14 @@ indexNode& schema::createIndex(string& indexName, vector<string>& keys)
     delete temp;
     return indicies.back();
 }
-indexNode schema::dropIndex(string& indexName)
+indexNode schema::DropIndex(string& indexName)
 {
     indexNode result;
     for(auto i = indicies.begin();i != indicies.end();i++)
         if(i->name == indexName){result = *i; indicies.erase(i);break;}
     return result;
 }
-int schema::keyOffset(string KeyName)
+int schema::KeyOffset(string KeyName)
 {
     int offset = 0;
     for(auto i = keyList.begin(); i != keyList.end(); i ++)
@@ -166,6 +159,18 @@ indexNode schema::IfKeyIsIndex(string keyName)
     for(i = indicies.begin();i != indicies.end();i ++)
         if(i->keys[0].name == keyName) break;
     return *i;
+}
+bool schema::DescribeTable()
+{
+    cout << std::left << setw(20) << "Attribute" << std::left << setw(8) << "type" << std::left << setw(10) << "PrimaryKey" << endl;
+    for (int i = 0; i < keyList.size(); i++) {
+        cout << std::left << setw(20) << keyList[i].name;
+        if(keyList[i].type > 1) cout << std::left << setw(8) << "VARCHAR(" << keyList[i].type - 2 << ")";
+        else cout << std::left << setw(8) << keyList[i].type ? "FLOAT" : "INT";
+        cout << std::left << setw(10) << ((keyList[i].primary == 1) ? "Yes" : "No") << endl;
+    }
+	cout << endl;
+	return true;
 }
 dataBase::dataBase()
 {
@@ -278,7 +283,7 @@ indexNode& dataBase::createIndex(string& indexName, string& schemaName, vector<s
             if(tableIndex == schemas.size()) {error.info = "No such table exists. "; throw error;}
             //if primary key
             schema& thisTable = table[tableIndex];
-            indicies.push_back(thisTable.createIndex(indexName, keys));
+            indicies.push_back(thisTable.CreateIndex(indexName, keys));
         }
     }
     return indicies.back();
@@ -288,7 +293,7 @@ indexNode dataBase::dropIndex(string& indexName)
     indexNode result;
     errorInfo error;
     for(int i = 0; i < indicies.size(); i++)
-        if(indicies[i].name == indexName){result = table[indicies[i].belongTo].dropIndex(indexName);}
+        if(indicies[i].name == indexName){result = table[indicies[i].belongTo].DropIndex(indexName);}
     if(!result.legal) {error.info = "No such index exists. ";throw error;}
     return result;
 }
@@ -297,4 +302,10 @@ void dataBase::showSchemas(ostream& out)
     for(auto i = 0; i != schemas.size();i++)
         out << schemas[i] << " ";
     out << endl;
+}
+int dataBase::FindTableIndex(string tableName)
+{
+    for(int i = 0; i < schemas.size();i++)
+        if(schemas[i] == tableName) return i;
+    return -1;
 }

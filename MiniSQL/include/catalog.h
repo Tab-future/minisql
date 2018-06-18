@@ -36,7 +36,7 @@ public:
     int tupleSize;//how many records it has
     int keySize;
     vector<key> keyList;
-    vector<string> primaryKey;
+    vector<int> primaryKey;
     unsigned short recordSize;
     unsigned int emptyIndex;
     int indexSize;
@@ -49,13 +49,14 @@ public:
     ~schema();
     bool load(istream& in);//load schema from istream
     bool store();//store schema into file
-    bool addKey();//add a key by cin
-    bool addKey(key& newKey);//add a key
-    bool dropKey(string keyName);//drop a key
-    indexNode& createIndex(string& indexName, vector<string>& keys);//add an index
-    indexNode dropIndex(string& indexName);//drop an index
-    int keyOffset(string KeyName);
+    bool AddKey();//add a key by cin
+    bool AddKey(key& newKey);//add a key
+    bool DropKey(string keyName);//drop a key
+    indexNode& CreateIndex(string& indexName, vector<string>& keys);//add an index
+    indexNode DropIndex(string& indexName);//drop an index
+    int KeyOffset(string KeyName);
     indexNode IfKeyIsIndex(string keyName);//if true, return corresponding indexNode, else return a NULL indexNode
+    bool DescribeTable();
 };
 class dataBase{
 public:
@@ -79,4 +80,5 @@ public:
     indexNode& createIndex(string& indexName, string& schemaName, vector<string>& keys);//create index
     indexNode dropIndex(string& indexName);//drop index
     void showSchemas(ostream& out);
+    int FindTableIndex(string tableName);
 };
