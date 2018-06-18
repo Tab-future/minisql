@@ -19,6 +19,11 @@ struct indexNode{
     vector<int> no;//key's order number in all keys
     vector<key> keys;//keys to build this index
     bool legal(){return name == "" ? 0 : 1;};
+    operator bool()
+    {
+        if(name == "") return false;
+        else return true;
+    };
 };
 class errorInfo
 {
@@ -37,7 +42,7 @@ public:
     int keySize;
     vector<key> keyList;
     vector<int> primaryKey;
-    unsigned short recordSize;
+    unsigned int recordSize = 4;//4 byte preserved for an empty node pointer
     unsigned int emptyIndex;
     int indexSize;
     vector<indexNode> indicies;

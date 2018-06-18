@@ -18,7 +18,6 @@ schema::schema(string tableName, vector<key>& attrVec)
 {
     name = tableName;
     tupleSize = 0;
-    recordSize = 0;
     for(int i = 0; i < attrVec.size(); i++)
     {
         AddKey(attrVec[i]);
@@ -35,7 +34,6 @@ bool schema::load(istream& in)
     //load head info
     in >> name >> deleted >> tupleSize >> keySize;
     //load attribute info
-    recordSize = 0;
     for(int i = 0; i < keySize ; i ++)
     {
         key temp;
@@ -98,7 +96,7 @@ bool schema::AddKey(key& newKey)
     keyList.push_back(newKey);
     //
     if(newKey.type == INT || newKey.type == FLOAT) recordSize += 4;
-    else recordSize += newKey.type - 2;    
+    else recordSize += newKey.type - 2;
     if(newKey.primary) primaryKey.push_back(keySize);
     keySize++;
     return 1;
@@ -109,6 +107,8 @@ bool schema::DropKey(string keyName)
     for(auto i = keyList.begin(); i != keyList.end(); i++)
         if(i->name == keyName && !i->primary)//index problem
         {
+            if(i->type == INT || i->type == FLOAT) recordSize-=4;
+            else recordSize-= i->type - 2;
             keyList.erase(i);
             flag = 1;
             keySize --;
@@ -157,8 +157,8 @@ indexNode schema::IfKeyIsIndex(string keyName)
 {
     vector<indexNode>::iterator i;
     for(i = indicies.begin();i != indicies.end();i ++)
-        if(i->keys[0].name == keyName) break;
-    return *i;
+        if(i->keys[0].name == keyName) return *i;
+    return indexNode();//if not index, return a default index indicating false
 }
 bool schema::DescribeTable()
 {

@@ -21,7 +21,7 @@ public:
 	bool ShowTables();	// Show the names of all tables
 	bool CreateIndex(string tableName, string indexName, key attr, bool check = true);
 	bool DropIndex(string indexName);
-	bool SelectRecord(string tableName, vector<Cond>& condVec);
+	bool SelectRecord(string& tableName, vector<Cond> AndConds);
 	bool InsertRecord(string tableName, vector<string> values);
 	bool DeleteRecord(string tableName, vector<Cond>& condVec);
 	bool IfTableExist(string TableName);
@@ -29,4 +29,12 @@ public:
 	bool DeleteIndex(int post1, int post2, int change, string tableName);
 	void GetAttr(string& TableName, vector<key>& attr);
 	bool DescribleTable(string& tableName);
+	template<typename T>
+	bool AndLegal(string& indexKeyName, vector<Cond>& conds, T& value);
+	template<typename T>
+	void search(schema& thisTable, string& indexKeyName, vector<Cond>& AndConds, Node<T>* Tree);
+	template<typename T>
+	void RecordTraverse(schema& thisTable, Node<T>* Tree);
+	void PrintRecord(schema& thisTable, vector<Cond> Conds, unsigned int RecordOffset);//print records satisfying select conditions
+	void PrintRecord(schema& thisTable, unsigned int RecordOffset);
 };

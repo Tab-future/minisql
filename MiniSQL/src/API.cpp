@@ -109,8 +109,70 @@ bool API::DropIndex(string indexName)
 	}
 	//index end
 }
-bool API::SelectRecord(string tableName, vector<Cond>& condVec)
+bool API::SelectRecord(string& tableName, vector<Cond> AndConds)
 {
+	schema& thisTable = DB->table[DB->FindTableIndex(tableName)];
+	indexNode thisIndex;
+	for(int i = 0; i < AndConds.size(); i++)
+	{
+		//如果可以用索引来找
+		if(thisIndex = thisTable.IfKeyIsIndex(AndConds[i].AttrName))
+		{
+			switch(thisIndex.keys[0].type)
+			{
+				case INT:
+					search(thisTable, thisIndex.name, AndConds, int_IM[thisIndex.name].index.GetRoot());
+					break;
+				case FLOAT:
+					search(thisTable, thisIndex.name, AndConds, float_IM[thisIndex.name].index.GetRoot());
+					break;
+				default:
+					search(thisTable, thisIndex.name, AndConds, string_IM[thisIndex.name].index.GetRoot());
+					break;
+			}
+			return true;
+		}
+	}
+	//否则遍历所有record，打印符合条件的
+	switch(thisTable.IfKeyIsIndex(AndConds[0].AttrName).keys[0].type)
+	{
+		case INT:
+			RecordTraverse(thisTable, int_IM[thisIndex.name].index.GetRoot());
+			break;
+		case FLOAT:
+			RecordTraverse(thisTable, float_IM[thisIndex.name].index.GetRoot());
+			break;
+		default:
+			RecordTraverse(thisTable, string_IM[thisIndex.name].index.GetRoot());
+			break;
+	}
+	return true;
+}
+
+template<typename T>
+void API::search(schema& thisTable, string& indexKeyName, vector<Cond>& AndConds, Node<T>* Tree)
+{
+	for(int i = 0; i <= Tree->keys.size();i++)
+	{
+		if(AndLegal(indexKeyName, AndConds, Tree->keys[i].value))
+		{
+			//如果该节点是底层,打印该记录并退出
+			if(!Tree->childNode[0]) PrintRecord(thisTable, AndConds, Tree->keys[i].offset);
+			//否则遍历其子节点
+			else search(thisTable, indexKeyName, key, Tree->childNode[i]);
+		}
+	}
+}
+template<typename T>
+void API::RecordTraverse(schema& thisTable, Node<T>* Tree)
+{
+	for(int i = 0; i <= Tree->keys.size();i++)
+	{
+		//如果该节点是底层,打印该记录并退出
+		if(!Tree->childNode[0]) PrintRecord(thisTable, Tree->keys[i].offset);
+		//否则遍历其子节点
+		else RecordTraverse(thisTable, Tree->childNode[i]);
+	}
 }
 bool API::InsertRecord(string tableName, vector<string> values)
 {
@@ -157,4 +219,38 @@ bool API::DescribleTable(string& tableName)
 		cout << "No such table exists. " << endl;
 		return 0;
 	}
+}
+template<typename T>
+bool API::AndLegal(string& indexKeyName, vector<Cond>& conds, T& value)
+{
+	bool legal = 1;
+	for(int i = 0; i < conds.size(); i++)
+		if(conds[i].AttrName == indexKeyName) legal = legal && conds[i].Check(value);
+	return legal;
+}
+template<typename T>
+void API::PrintRecord(schema& thisTable, vector<Cond> conds, unsigned int RecordOffset)
+{
+	bool legal = 1;
+	unsigned int i;
+	T result;
+	for(i = 0; i < conds.size(); i++)
+	{
+		switch(thisTable.keyList[i].type)
+		{
+			case INT:
+				int result = RM->getAttributeValue(thisTable.type, RecordOffset, i); 
+				legal = legal && conds[i].Check(result);
+				break;
+			case FLOAT:
+				break;
+			default :
+				break;
+		};
+	}
+	if(legal) cout << RM->getAttributeValue(thisTable, RecordOffset, i);
+}
+void API::PrintRecord(schema& thisTable, unsigned int RecordOffset)
+{
+	
 }

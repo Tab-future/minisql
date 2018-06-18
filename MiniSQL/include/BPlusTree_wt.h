@@ -31,7 +31,6 @@ struct SearchNode
 	int position;
 	bool ifFind;
 };
-
 template <class T>
 class BPlusTree
 {
