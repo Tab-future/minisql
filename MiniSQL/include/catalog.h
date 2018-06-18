@@ -11,12 +11,14 @@ struct key{
     bool primary;
     bool unique;
 };
+//only support single attribute index currently
 struct indexNode{
-    string name;
+    string name = "";
     unsigned int belongTo;//which schema this index belongs to
     int size;
     vector<int> no;//key's order number in all keys
     vector<key> keys;//keys to build this index
+    bool legal(){return name == "" ? 0 : 1;};
 };
 class errorInfo
 {
@@ -51,8 +53,9 @@ public:
     bool addKey(key& newKey);//add a key
     bool dropKey(string keyName);//drop a key
     indexNode& createIndex(string& indexName, vector<string>& keys);//add an index
-    bool dropIndex(string& indexName);//drop an index
+    indexNode dropIndex(string& indexName);//drop an index
     int keyOffset(string KeyName);
+    indexNode IfKeyIsIndex(string keyName);//if true, return corresponding indexNode, else return a NULL indexNode
 };
 class dataBase{
 public:
@@ -74,6 +77,6 @@ public:
     bool dropSchema(string& name);//drop a schema called 'name'
     bool dropSchema(const char name[]);
     indexNode& createIndex(string& indexName, string& schemaName, vector<string>& keys);//create index
-    bool dropIndex(string& indexName);//drop index
+    indexNode dropIndex(string& indexName);//drop index
     void showSchemas(ostream& out);
 };
