@@ -1,10 +1,10 @@
-#include"catalog.h"
+#include"..\include\catalog.h"
 schema::schema(istream& in)
 {
 }
 schema::schema(string& fileName)
 {
-    string temp = fileName + ".schema";
+    string temp = "..\\src\\" + fileName + ".schema";
     ifstream file(temp);
     load(file);
     file.close();
@@ -13,6 +13,23 @@ schema::schema(const char fileName[])
 {
     string temp(fileName);
     *this = schema(temp);
+}
+schema::schema(string tableName, vector<key>& attrVec)
+{
+    name = tableName;
+    tupleSize = 0;
+    keySize = attrVec.size();
+    keyList = attrVec;
+    recordSize = 0;
+    for(int i = 0; i < keyList.size(); i++)
+    {
+        if(keyList[i].primary) primaryKey.push_back(keyList[i].name);
+        if(keyList[i].type == INT || keyList[i].type == FLOAT) recordSize += 4;
+        else recordSize += keyList[i].type - 2;
+    }
+    indexSize = 0;
+    emptyIndex = 0;
+    
 }
 schema::~schema()
 {
@@ -33,7 +50,7 @@ bool schema::load(istream& in)
         delete temp;
 
         //mark primary key
-        if(keyList.back().primary) primaryKey.push_back(keyList.back());
+        if(keyList.back().primary) primaryKey.push_back(keyList.back().name);
     }
     in >> emptyIndex;
     //load index info
@@ -57,7 +74,7 @@ bool schema::load(istream& in)
 }
 bool schema::store()
 {
-    string temp = name + ".schema";
+    string temp = "..\\src\\" + name + ".schema";
     ofstream file(temp);
     //store head info
     file << name << " "<< deleted << " " << tupleSize << " " << keySize << endl;
@@ -76,24 +93,24 @@ bool schema::store()
     file.close();
     return 1;
 }
-bool schema::add()
+bool schema::addKey()
 {
-    auto aKey = new key;
+    key newKey;
     cout << "Add a key with following input format: " << endl;
     cout << "name type(int->0, float->1, varchar(n)-> n+2) primary(0/1) unique(0/1)" << endl << endl;
-    cin >> aKey->name >> aKey->type >> aKey->primary >> aKey->unique;
-    add(*aKey);
-    delete aKey;
-    return 1;
+    cin >> newKey.name >> newKey.type >> newKey.primary >> newKey.unique;
+    return addKey(newKey);
 }
-bool schema::add(key& newKey)
+bool schema::addKey(key& newKey)
 {
+    //if reach maximum attribute size
     if(keySize >= MAX_ATTRIBUTES) return 0;
     keyList.push_back(newKey);
+    if(newKey.primary) primaryKey.push_back(newKey.name);
     keySize++;
     return 1;
 }
-bool schema::drop(string keyName)
+bool schema::dropKey(string keyName)
 {
     bool flag = 0;
     for(auto i = keyList.begin(); i != keyList.end(); i++)
@@ -132,6 +149,17 @@ bool schema::dropIndex(string& indexName)
         if(i->name == indexName){indicies.erase(i); return 1;}
     return 0;
 }
+int schema::keyOffset(string KeyName)
+{
+    int offset = 0;
+    for(auto i = keyList.begin(); i != keyList.end(); i ++)
+    {
+        if(i->type == INT || i->type == FLOAT) offset += 4;
+        else offset += i->type - 2;
+        if(i->name == KeyName) break;
+    }
+    return offset;
+}
 dataBase::dataBase()
 {
     cout << "Create a dataBase with following format: " << endl;
@@ -144,7 +172,7 @@ dataBase::dataBase()
 }
 dataBase::dataBase(string& fileName)
 {
-    string temp = fileName + ".dbs";
+    string temp = "..\\src\\" + fileName + ".dbs";
     ifstream file(temp);
     load(file);
     file.close();
@@ -178,7 +206,7 @@ bool dataBase::load(istream& in)
 }
 bool dataBase::store()
 {
-    string temp = name + ".dbs";
+    string temp = "..\\src\\" + name + ".dbs";
     ofstream hFile(temp);
     hFile << size << " " << endl;
     for(int i = 0 ; i < size ; i++)
@@ -189,37 +217,41 @@ bool dataBase::store()
     hFile.close();
     return 1;
 }
-unsigned short dataBase::create(istream& in)
+unsigned short dataBase::createSchema(istream& in)
 {
-    unsigned short Type = 0;
-    auto temp = new schema;
-    *temp = schema(in);
-    temp->type = size;
-    Type = create(*temp);
-    delete temp;
-    return Type;
+    schema newSchema = schema(in);
+    newSchema.type = size;
+    return createSchema(newSchema); 
 }
-unsigned short dataBase::create(schema& newSchema)
+unsigned short dataBase::createSchema(schema& newSchema)
 {
     table.push_back(newSchema);
+    schemas.push_back(newSchema.name);
     return size++;
 }
-bool dataBase::drop(int no)
+unsigned short dataBase::createSchema(string tableName, vector<key>& attrVec)
+{
+    schema newSchema(tableName, attrVec);
+    newSchema.type = size;
+    return createSchema(newSchema);
+}
+bool dataBase::dropSchema(int no)
 {
     table[no].deleted = 1;
     return 1;
 }
-bool dataBase::drop(string& name)
+bool dataBase::dropSchema(string& name)
 {
+    errorInfo error;
     for(int i = 0; i < size; i++)
-        if(table[i].name == name) drop(i);
-    return 1;
+        if(table[i].name == name) {dropSchema(i);return 1;}
+    error.info = "No such schema exists. ";
+    throw error;
 }
-bool dataBase::drop(const char name[])
+bool dataBase::dropSchema(const char name[])
 {
     string temp(name);
-    drop(temp);
-    return 1;
+    return dropSchema(temp);
 }
 indexNode& dataBase::createIndex(string& indexName, string& schemaName, vector<string>& keys)
 {
@@ -252,4 +284,10 @@ bool dataBase::dropIndex(string& indexName)
         if(indicies[i].name == indexName){result = table[indicies[i].belongTo].dropIndex(indexName);}
     if(!result) {error.info = "No such index exists. ";throw error;}
     return result;
+}
+void dataBase::showSchemas(ostream& out)
+{
+    for(auto i = 0; i != schemas.size();i++)
+        out << schemas[i] << " ";
+    out << endl;
 }

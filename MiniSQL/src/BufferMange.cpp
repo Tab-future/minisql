@@ -1,4 +1,4 @@
-#include "BufferMange.h"
+#include "..\include\BufferMange.h"
 #include <iostream>
 #include <cmath>
 
