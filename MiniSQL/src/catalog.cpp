@@ -142,12 +142,12 @@ indexNode& schema::createIndex(string& indexName, vector<string>& keys)
     delete temp;
     return indicies.back();
 }
-bool schema::dropIndex(string& indexName)
+indexNode schema::dropIndex(string& indexName)
 {
-    errorInfo error;
+    indexNode result;
     for(auto i = indicies.begin();i != indicies.end();i++)
-        if(i->name == indexName){indicies.erase(i); return 1;}
-    return 0;
+        if(i->name == indexName){result = *i; indicies.erase(i);break;}
+    return result;
 }
 int schema::keyOffset(string KeyName)
 {
@@ -159,6 +159,13 @@ int schema::keyOffset(string KeyName)
         if(i->name == KeyName) break;
     }
     return offset;
+}
+indexNode schema::IfKeyIsIndex(string keyName)
+{
+    vector<indexNode>::iterator i;
+    for(i = indicies.begin();i != indicies.end();i ++)
+        if(i->keys[0].name == keyName) break;
+    return *i;
 }
 dataBase::dataBase()
 {
@@ -276,13 +283,13 @@ indexNode& dataBase::createIndex(string& indexName, string& schemaName, vector<s
     }
     return indicies.back();
 }
-bool dataBase::dropIndex(string& indexName)
+indexNode dataBase::dropIndex(string& indexName)
 {
-    bool result = 0;
+    indexNode result;
     errorInfo error;
     for(int i = 0; i < indicies.size(); i++)
         if(indicies[i].name == indexName){result = table[indicies[i].belongTo].dropIndex(indexName);}
-    if(!result) {error.info = "No such index exists. ";throw error;}
+    if(!result.legal) {error.info = "No such index exists. ";throw error;}
     return result;
 }
 void dataBase::showSchemas(ostream& out)
