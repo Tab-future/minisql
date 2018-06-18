@@ -20,6 +20,7 @@ public:
 	bool CreateTable(string tableName, vector<key>& attrVec);
 	bool DropTable(string tableName);
 	bool ShowTables();	// Show the names of all tables
+	bool GetAttr(string tableName);
 	bool CreateIndex(string tableName, string indexName, key attr, bool check = true);
 	bool DropIndex(string indexName);
 	bool SelectRecord(string tableName, vector<Cond>& condVec);

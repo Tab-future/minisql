@@ -519,10 +519,21 @@ void BPlusTree<T>::Split(Node<T>* node)
 		}
 	}
 	//split and upload the middle key
-	parent->keys.push_back(parent->keys[pos-1]);
-	for (int j = parent->keyNum; j > pos; j--)
+	if (pos == 0) //Then the split happens in the first childnode, and keys[pos-1] does not exist.
 	{
-		parent->keys[j] = parent->keys[j - 1];
+		parent->keys.push_back(parent->keys[pos]);
+		for (int j = parent->keyNum; j > pos; j--) //Note that the final key of parents is parent->key[parent->keyNum-1]
+		{
+			parent->keys[j] = parent->keys[j - 1];
+		}
+	}
+	else //Then the keys[pos-1] must exist.
+	{
+		parent->keys.push_back(parent->keys[pos - 1]);
+		for (int j = parent->keyNum; j >= pos; j--) //Note that the final key of parents is parent->key[parent->keyNum-1]
+		{
+			parent->keys[j] = parent->keys[j - 1];
+		}
 	}
 	parent->childNode.push_back(parent->childNode[pos]);
 	for (int j = parent->keyNum + 1; j > pos; j--) 
@@ -566,7 +577,7 @@ void BPlusTree<T>::PrintNode(string filename, Node<T>* node)
 	}
 	if (node->parentNode)
 	{
-		file << "------parent: " << node->parentNode->keys[0].value;
+		file << "------parent: " << node->parentNode->keys[0].value << endl;
 	}
 	for (int i = 0; i < node->keyNum + 1; i++)
 	{
