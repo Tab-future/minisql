@@ -5,12 +5,40 @@ bool API::CreateTable(string tableName, vector<key>& attrVec)
     //catalog begin
     DB->createSchema(tableName, attrVec);//returns the type of table
     //catalog end
+	//index begin
+	string indexName = tableName + "_index";
+	for (int i = 0; i < DB->schemas.size(); i++)
+	{
+		if (tableName == DB->schemas[i])
+		{
+			key primaryK = DB->table[i].keyList[DB->table[i].primaryKey[0]];
+			if (!CreateIndex(DB->schemas[i], indexName, primaryK, primaryK.type))
+				cout << "Error: Index creation fails!" << endl;
+		}
+	}
+	//index end
+	return true;
 }
 bool API::DropTable(string tableName)
 {
     //catalog begin
     if(IfTableExist(tableName)) DB->dropSchema(tableName);//return 1 if succees, else throw an error
     //catalog end
+	//index begin
+	for (int i = 0; i < DB->schemas.size(); i++)
+	{
+		if (tableName == DB->schemas[i])
+		{
+			vector<indexNode> allIdxNodes = DB->table[i].indicies;
+			for (int j = 0; j < allIdxNodes.size(); j++)
+			{
+				if (!DropIndex(allIdxNodes[j].name))
+					cout << "Error: Index deletion fails." << endl;
+			}
+		}
+	}
+	return true;
+	//index end
 }
 bool API::ShowTables()// Show the names of all tables
 {
@@ -176,9 +204,61 @@ void API::RecordTraverse(schema& thisTable, Node<T>* Tree)
 }
 bool API::InsertRecord(string tableName, vector<string> values)
 {
+	//First, insert record into the table;
+	int offset;
+	//Then insert key into the IndexManager;
+	for (int i = 0; i < DB->schemas.size(); i++)
+	{
+		if (tableName == DB->schemas[i])
+		{
+			vector<indexNode>& allIdxNodes = DB->table[i].indicies;
+			for (int j = 0; j < allIdxNodes.size(); j++)
+			{
+				string stringValue = values[allIdxNodes[j].no[0]];
+				switch (allIdxNodes[j].keys[0].type)
+				{
+				case 0:
+				{
+					map<string, IndexManager<int>>::iterator key = int_IM.find(stringValue);
+					key->second.InsertElement((int)stoi(stringValue), offset);
+					key->second.write();
+					break;
+				}
+				case 1:
+				{
+					map<string, IndexManager<float>>::iterator key = float_IM.find(stringValue);
+					key->second.InsertElement(stof(stringValue), offset);
+					key->second.write();
+					break;
+				}
+				default:
+				{
+					map<string, IndexManager<string>>::iterator key = string_IM.find(stringValue);
+					key->second.InsertElement(stringValue, offset);
+					key->second.write();
+					break;
+				}
+				break;
+				}
+			}
+		}
+	}
+	return true;
 }
+template <class T>
 bool API::DeleteRecord(string tableName, vector<Cond>& condVec)
 {
+	//First, delete record in RecordManager and CatalogManager. I need to search these nodes.
+
+
+	//Then delete index in the IndexManager.
+	T post1, post2;
+	if (DeleteIndex(post1, post2, 0, tableName))
+		return true;
+	else
+	{
+		cout << "Error: Index deletion fails." << endl;
+	}
 }
 bool API::IfTableExist(string TableName)
 {
@@ -202,8 +282,44 @@ bool API::IfKeyExist(string TableName, string KeyName)
     return 0;
     //catalog end
 }
-bool API::DeleteIndex(int post1, int post2, int change, string tableName)
+template <class T>
+bool API::DeleteIndex(T post1, T post2, int change, string tableName)
 {
+	for (int i = 0; i < DB->schemas.size(); i++)
+	{
+		if (tableName == DB->schemas[i])
+		{
+			vector<indexNode>& allIdxNodes = DB->table[i].indicies;
+			for (int j = 0; j < allIdxNodes.size(); j++)
+			{
+				switch (allIdxNodes[j].keys[0].type)
+				{
+				case 0:
+				{
+					map<string, IndexManager<int>>::iterator key = int_IM.find(allIdxNodes[j].name);
+					key->second.DeleteElement(post1, post2, change);
+					key->second.write();
+					break;
+				}
+				case 1:
+				{
+					map<string, IndexManager<float>>::iterator key = float_IM.find(allIdxNodes[j].name);
+					key->second.DeleteElement(post1, post2, change);
+					key->second.write();
+					break;
+				}
+				default:
+				{
+					map<string, IndexManager<string>>::iterator key = string_IM.find(allIdxNodes[j].name);
+					key->second.DeleteElement(post1, post2, change);
+					key->second.write();
+					break;
+				}
+				}
+			}
+		}
+	}
+	return true;
 }
 void API::GetAttr(string& TableName, vector<key>& attr)
 {
